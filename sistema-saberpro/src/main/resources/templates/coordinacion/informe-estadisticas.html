@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas Generales - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a href="#" class="nav-link active">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Estadísticas Generales</h1>
+            <p class="dashboard-subtitle">Análisis completo del desempeño institucional en pruebas Saber Pro y T&T</p>
+        </div>
+
+        <!-- Key Performance Indicators -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalEstudiantes}">0</div>
+                <div class="stat-label">Total Estudiantes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalResultados}">0</div>
+                <div class="stat-label">Pruebas Presentadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${tasaAprobacion} + '%'">0%</div>
+                <div class="stat-label">Tasa de Aprobación</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${promedioGlobal} != null ? ${#numbers.formatDecimal(promedioGlobal, 1, 2)} : 'N/A'">N/A</div>
+                <div class="stat-label">Promedio Global</div>
+            </div>
+        </div>
+
+        <!-- Performance by Test Type -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <!-- Saber Pro Statistics -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    🎓 Saber Pro
+                </h3>
+                
+                <div style="display: grid; gap: 15px;">
+                    <div style="display: flex; justify-content: between;">
+                        <span>Total presentados:</span>
+                        <strong th:text="${estadisticasPro.total}">0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Promedio:</span>
+                        <strong th:text="${estadisticasPro.promedio} != null ? ${#numbers.formatDecimal(estadisticasPro.promedio, 1, 2)} : 'N/A'"></strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Aprobados:</span>
+                        <strong th:text="${estadisticasPro.aprobados} + ' (' + ${estadisticasPro.tasaAprobacion} + '%)'"></strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Con beneficios:</span>
+                        <strong th:text="${estadisticasPro.conBeneficios} + ' (' + ${estadisticasPro.porcentajeBeneficios} + '%)'"></strong>
+                    </div>
+                </div>
+                
+                <!-- Score Distribution -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Distribución por Niveles</h4>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #28a745; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 4 (Excelente):</span>
+                            <strong th:text="${estadisticasPro.nivel4} + ' (' + ${estadisticasPro.porcentajeNivel4} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #ffc107; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 3 (Bueno):</span>
+                            <strong th:text="${estadisticasPro.nivel3} + ' (' + ${estadisticasPro.porcentajeNivel3} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #e2e3e5; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 2 (Básico):</span>
+                            <strong th:text="${estadisticasPro.nivel2} + ' (' + ${estadisticasPro.porcentajeNivel2} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #dc3545; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 1 (Insuficiente):</span>
+                            <strong th:text="${estadisticasPro.nivel1} + ' (' + ${estadisticasPro.porcentajeNivel1} + '%)'"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saber T&T Statistics -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    📚 Saber T&T
+                </h3>
+                
+                <div style="display: grid; gap: 15px;">
+                    <div style="display: flex; justify-content: between;">
+                        <span>Total presentados:</span>
+                        <strong th:text="${estadisticasTyT.total}">0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Promedio:</span>
+                        <strong th:text="${estadisticasTyT.promedio} != null ? ${#numbers.formatDecimal(estadisticasTyT.promedio, 1, 2)} : 'N/A'"></strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Aprobados:</span>
+                        <strong th:text="${estadisticasTyT.aprobados} + ' (' + ${estadisticasTyT.tasaAprobacion} + '%)'"></strong>
+                    </div>
+                    <div style="display: flex; justify-content: between;">
+                        <span>Con beneficios:</span>
+                        <strong th:text="${estadisticasTyT.conBeneficios} + ' (' + ${estadisticasTyT.porcentajeBeneficios} + '%)'"></strong>
+                    </div>
+                </div>
+                
+                <!-- Score Distribution -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Distribución por Niveles</h4>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #28a745; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 4 (Excelente):</span>
+                            <strong th:text="${estadisticasTyT.nivel4} + ' (' + ${estadisticasTyT.porcentajeNivel4} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #ffc107; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 3 (Bueno):</span>
+                            <strong th:text="${estadisticasTyT.nivel3} + ' (' + ${estadisticasTyT.porcentajeNivel3} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #e2e3e5; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 2 (Básico):</span>
+                            <strong th:text="${estadisticasTyT.nivel2} + ' (' + ${estadisticasTyT.porcentajeNivel2} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 20px; background: #dc3545; border-radius: 4px;"></div>
+                            <span style="flex: 1;">Nivel 1 (Insuficiente):</span>
+                            <strong th:text="${estadisticasTyT.nivel1} + ' (' + ${estadisticasTyT.porcentajeNivel1} + '%)'"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competencies Analysis -->
+        <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 25px; text-align: center;">📈 Análisis por Competencias</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div th:each="competencia : ${estadisticasCompetencias}" 
+                     style="border: 1px solid var(--color-gris-claro); border-radius: 10px; padding: 20px;">
+                    <h4 style="color: var(--color-verde-texto); margin: 0 0 15px 0; text-align: center;" 
+                        th:text="${competencia.nombre}"></h4>
+                    
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 28px; font-weight: bold; color: var(--color-verde-texto);" 
+                             th:text="${competencia.promedio} != null ? ${#numbers.formatDecimal(competencia.promedio, 1, 2)} : 'N/A'"></div>
+                        <div style="font-size: 14px; color: var(--color-gris-texto);">Promedio</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #28a745;" th:text="${competencia.nivel4}"></div>
+                            <div style="color: var(--color-gris-texto);">N4</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #ffc107;" th:text="${competencia.nivel3}"></div>
+                            <div style="color: var(--color-gris-texto);">N3</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #6c757d;" th:text="${competencia.nivel2}"></div>
+                            <div style="color: var(--color-gris-texto);">N2</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #dc3545;" th:text="${competencia.nivel1}"></div>
+                            <div style="color: var(--color-gris-texto);">N1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performers -->
+        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">🏆 Mejores Desempeños</h3>
+            
+            <div style="display: grid; gap: 15px;">
+                <div th:each="top, iter : ${topResultados}" 
+                     style="display: grid; grid-template-columns: 40px 1fr auto; gap: 15px; align-items: center; padding: 15px; border-bottom: 1px solid var(--color-gris-claro);">
+                    <div style="background: var(--color-verde-claro); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <span th:text="${iter.index + 1}"></span>
+                    </div>
+                    
+                    <div>
+                        <strong th:text="${top[0]}"></strong>
+                        <div style="font-size: 12px; color: var(--color-gris-texto);" th:text="${top[2]}"></div>
+                    </div>
+                    
+                    <div style="text-align: right;">
+                        <div style="font-size: 20px; font-weight: bold; color: var(--color-verde-texto);" th:text="${top[1]}"></div>
+                        <div style="font-size: 12px; color: var(--color-gris-texto);" th:text="${top[2] == 'SABER_PRO'} ? '/300' : '/200'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Economic Impact -->
+        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">💰 Impacto Económico</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;" th:text="${totalExonerados}">0</div>
+                    <div style="font-size: 14px; color: #28a745;">Total Exonerados</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #ffc107;" th:text="${becas50}">0</div>
+                    <div style="font-size: 14px; color: #ffc107;">Becas 50%</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #d4edda; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #155724;" th:text="${becas100}">0</div>
+                    <div style="font-size: 14px; color: #155724;">Becas 100%</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #e2e3e5; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #383d41;" th:text="${ahorroEstimado}"></div>
+                    <div style="font-size: 14px; color: #383d41;">Ahorro Estimado</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a th:href="@{/coordinacion/dashboard}" class="btn btn-secondary">
+                ← Volver al Dashboard
+            </a>
+            <a th:href="@{/coordinacion/informes/alumnos}" class="btn btn-primary">
+                👥 Ver Informe de Alumnos
+            </a>
+            <a th:href="@{/coordinacion/informes/beneficios}" class="btn btn-primary">
+                🏆 Ver Informe de Beneficios
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                🖨️ Imprimir Estadísticas
+            </button>
+        </div>
+    </main>
+
+    <style>
+        .stat-card-large {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px var(--color-sombra);
+        }
+        
+        .competency-stat-card {
+            border: 1px solid var(--color-gris-claro);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .top-performer {
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--color-gris-claro);
+        }
+        
+        .rank-badge {
+            background: var(--color-verde-claro);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .impact-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .performance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .top-performer {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</body>
+</html>

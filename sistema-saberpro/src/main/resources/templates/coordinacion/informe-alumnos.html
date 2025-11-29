@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Alumnos - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a href="#" class="nav-link active">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Informe de Alumnos</h1>
+            <p class="dashboard-subtitle">Reporte completo de estudiantes y su situación académica</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalEstudiantes}">0</div>
+                <div class="stat-label">Total Estudiantes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${estudiantesConResultados}">0</div>
+                <div class="stat-label">Con Resultados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${estudiantesAprobados}">0</div>
+                <div class="stat-label">Aprobados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${porcentajeParticipacion} + '%'">0%</div>
+                <div class="stat-label">% Participación</div>
+            </div>
+        </div>
+
+        <!-- Report Filters -->
+        <div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">🔍 Filtros del Reporte</h3>
+            
+            <div style="display: flex; gap: 20px; align-items: end; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <label class="form-label">Estado Académico</label>
+                    <select id="filterStatus" class="form-input" onchange="filterStudents()">
+                        <option value="all">Todos los estados</option>
+                        <option value="con-resultados">Con resultados</option>
+                        <option value="sin-resultados">Sin resultados</option>
+                        <option value="aprobados">Aprobados</option>
+                        <option value="no-aprobados">No aprobados</option>
+                        <option value="con-beneficios">Con beneficios</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 1;">
+                    <label class="form-label">Tipo de Prueba</label>
+                    <select id="filterTest" class="form-input" onchange="filterStudents()">
+                        <option value="all">Todas las pruebas</option>
+                        <option value="SABER_PRO">Saber Pro</option>
+                        <option value="SABER_TT">Saber T&T</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 2;">
+                    <label class="form-label">Buscar Estudiante</label>
+                    <input type="text" id="searchStudent" class="form-input" 
+                           placeholder="Nombre, documento o registro..." onkeyup="filterStudents()">
+                </div>
+                
+                <div>
+                    <button onclick="exportStudentReport()" class="btn btn-primary">📊 Exportar Reporte</button>
+                    <button onclick="printReport()" class="btn btn-secondary">🖨️ Imprimir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Summary -->
+        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📈 Resumen por Estado</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="text-align: center; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #1976d2;" th:text="${estudiantesConResultados}">0</div>
+                    <div style="font-size: 14px; color: #1976d2;">Con Resultados</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #2e7d32;" th:text="${estudiantesAprobados}">0</div>
+                    <div style="font-size: 14px; color: #2e7d32;">Aprobados</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #fff3e0; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #ef6c00;" th:text="${estudiantesConBeneficios}">0</div>
+                    <div style="font-size: 14px; color: #ef6c00;">Con Beneficios</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; background: #ffebee; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #c62828;" th:text="${estudiantesSinResultados}">0</div>
+                    <div style="font-size: 14px; color: #c62828;">Sin Resultados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="table-container">
+            <table class="table" id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Documento</th>
+                        <th>Registro</th>
+                        <th>Contacto</th>
+                        <th>Pruebas Presentadas</th>
+                        <th>Mejor Puntaje</th>
+                        <th>Último Nivel</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="estudiante : ${estudiantes}" 
+                        th:data-status="${estudiante.conResultados ? (estudiante.aprobado ? 'aprobados' : 'no-aprobados') : 'sin-resultados'}"
+                        th:data-tests="${estudiante.totalPruebas}"
+                        th:data-student="${estudiante.primerNombre + ' ' + estudiante.primerApellido + ' ' + estudiante.numeroDocumento + ' ' + estudiante.numeroRegistro}">
+                        <td>
+                            <strong th:text="${estudiante.primerNombre + ' ' + estudiante.primerApellido}"></strong>
+                        </td>
+                        <td th:text="${estudiante.tipoDocumento + ' ' + estudiante.numeroDocumento}"></td>
+                        <td th:text="${estudiante.numeroRegistro}"></td>
+                        <td>
+                            <div th:text="${estudiante.correoElectronico}"></div>
+                            <div style="font-size: 12px; color: var(--color-gris-texto);" th:text="${estudiante.numeroTelefonico}"></div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span th:if="${estudiante.totalPruebas > 0}" class="badge badge-success" th:text="${estudiante.totalPruebas}"></span>
+                            <span th:if="${estudiante.totalPruebas == 0}" class="badge badge-danger">0</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span th:if="${estudiante.mejorPuntaje != null}" 
+                                  th:text="${estudiante.mejorPuntaje}"
+                                  th:style="${estudiante.tipoPrueba == 'SABER_PRO' && estudiante.mejorPuntaje >= 241} ? 'color: #28a745; font-weight: bold;' :
+                                            ${estudiante.tipoPrueba == 'SABER_PRO' && estudiante.mejorPuntaje >= 211} ? 'color: #ffc107; font-weight: bold;' :
+                                            ${estudiante.tipoPrueba == 'SABER_TT' && estudiante.mejorPuntaje > 171} ? 'color: #28a745; font-weight: bold;' :
+                                            ${estudiante.tipoPrueba == 'SABER_TT' && estudiante.mejorPuntaje >= 151} ? 'color: #ffc107; font-weight: bold;' : 'color: #6c757d;'"></span>
+                            <span th:if="${estudiante.mejorPuntaje == null}" style="color: var(--color-gris-texto);">-</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span th:if="${estudiante.ultimoNivel != null}" th:switch="${estudiante.ultimoNivel}" class="badge">
+                                <span th:case="'Nivel 4'" class="badge-success">N4</span>
+                                <span th:case="'Nivel 3'" class="badge-warning">N3</span>
+                                <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">N2</span>
+                                <span th:case="'Nivel 1'" class="badge-danger">N1</span>
+                            </span>
+                            <span th:if="${estudiante.ultimoNivel == null}" style="color: var(--color-gris-texto);">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${estudiante.conResultados && estudiante.aprobado}" class="badge badge-success">
+                                ✅ Aprobado
+                            </span>
+                            <span th:if="${estudiante.conResultados && !estudiante.aprobado}" class="badge badge-danger">
+                                ❌ No Aprobado
+                            </span>
+                            <span th:if="${!estudiante.conResultados}" class="badge" style="background: #6c757d; color: white;">
+                                ⏳ Sin Resultados
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <a th:href="@{/coordinacion/estudiantes/editar/{id}(id=${estudiante.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Editar">✏️</a>
+                                <a th:if="${estudiante.conResultados}" 
+                                   th:href="@{/coordinacion/resultados/detalle/{id}(id=${estudiante.ultimoResultadoId})}" 
+                                   class="btn btn-secondary btn-sm" title="Ver Resultado">📊</a>
+                                <a th:href="@{/coordinacion/resultados/nuevo?estudianteId={id}(id=${estudiante.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Agregar Resultado">➕</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${estudiantes.empty}">
+                        <td colspan="9" style="text-align: center; color: var(--color-gris-texto); padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+                            <h3 style="color: var(--color-gris-texto); margin-bottom: 10px;">No hay estudiantes registrados</h3>
+                            <p>Comience registrando el primer estudiante en el sistema.</p>
+                            <a th:href="@{/coordinacion/estudiantes/nuevo}" class="btn btn-primary" style="margin-top: 15px;">
+                                ➕ Registrar Primer Estudiante
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Report Summary -->
+        <div style="background: white; border-radius: 12px; padding: 25px; margin-top: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📋 Resumen Ejecutivo</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Distribución por Estado</h4>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: between;">
+                            <span>Con resultados:</span>
+                            <strong th:text="${estudiantesConResultados} + ' (' + ${porcentajeConResultados} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Aprobados:</span>
+                            <strong th:text="${estudiantesAprobados} + ' (' + ${porcentajeAprobados} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Con beneficios:</span>
+                            <strong th:text="${estudiantesConBeneficios} + ' (' + ${porcentajeConBeneficios} + '%)'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Sin resultados:</span>
+                            <strong th:text="${estudiantesSinResultados} + ' (' + ${porcentajeSinResultados} + '%)'"></strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Desempeño General</h4>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: between;">
+                            <span>Promedio general:</span>
+                            <strong th:text="${promedioGeneral} != null ? ${#numbers.formatDecimal(promedioGeneral, 1, 2)} : 'N/A'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Mejor puntaje:</span>
+                            <strong th:text="${mejorPuntajeGeneral} != null ? ${mejorPuntajeGeneral} : 'N/A'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Tasa de aprobación:</span>
+                            <strong th:text="${tasaAprobacionGeneral} + '%'"></strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Recomendaciones</h4>
+                    <ul style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                        <li th:if="${estudiantesSinResultados > 0}">Contactar a <strong th:text="${estudiantesSinResultados}"></strong> estudiantes sin resultados</li>
+                        <li th:if="${estudiantesConResultados - estudiantesAprobados > 0}">Reforzar preparación para <strong th:text="${estudiantesConResultados - estudiantesAprobados}"></strong> estudiantes no aprobados</li>
+                        <li>Programar sesiones de seguimiento para estudiantes con beneficios</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript for Report Functionality -->
+    <script>
+        function filterStudents() {
+            const statusFilter = document.getElementById('filterStatus').value;
+            const testFilter = document.getElementById('filterTest').value;
+            const searchFilter = document.getElementById('searchStudent').value.toLowerCase();
+            
+            const rows = document.querySelectorAll('#studentsTable tbody tr');
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const tests = parseInt(row.getAttribute('data-tests'));
+                const student = row.getAttribute('data-student').toLowerCase();
+                
+                // Status filter logic
+                let statusMatch = true;
+                if (statusFilter === 'con-resultados') {
+                    statusMatch = tests > 0;
+                } else if (statusFilter === 'sin-resultados') {
+                    statusMatch = tests === 0;
+                } else if (statusFilter === 'aprobados') {
+                    statusMatch = status === 'aprobados';
+                } else if (statusFilter === 'no-aprobados') {
+                    statusMatch = status === 'no-aprobados';
+                } else if (statusFilter === 'con-beneficios') {
+                    // This would require additional data attribute for benefits
+                    statusMatch = tests > 0; // Simplified for demo
+                }
+                
+                const searchMatch = student.includes(searchFilter);
+                
+                if (statusMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function exportStudentReport() {
+            alert('Generando reporte de estudiantes en Excel...');
+            // En implementación real, aquí iría la lógica para exportar a Excel
+        }
+        
+        function printReport() {
+            window.print();
+        }
+        
+        // Initialize filters
+        document.addEventListener('DOMContentLoaded', function() {
+            filterStudents();
+        });
+    </script>
+
+    <style>
+        .report-filter {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px var(--color-sombra);
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .executive-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px var(--color-sombra);
+        }
+        
+        .summary-section {
+            margin-bottom: 0;
+        }
+        
+        @media print {
+            .header, .btn, .report-filter {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+            }
+            
+            .table-container {
+                box-shadow: none !important;
+                border: 1px solid #000 !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

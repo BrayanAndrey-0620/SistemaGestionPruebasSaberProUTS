@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todos Mis Resultados - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Mi Dashboard</a>
+            <a th:href="@{/estudiante/identificacion}" class="nav-link">Mi Identificación</a>
+            <a th:href="@{/estudiante/resultado-unico}" class="nav-link">Mi Resultado</a>
+            <a href="#" class="nav-link active">Todos Mis Resultados</a>
+            <a th:href="@{/estudiante/beneficios}" class="nav-link">Mis Beneficios</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="'Bienvenido, ' + ${estudiante.primerNombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Todos Mis Resultados</h1>
+            <p class="dashboard-subtitle" th:text="'Historial completo de pruebas presentadas - Total: ' + ${totalResultados} + ' pruebas'"></p>
+        </div>
+
+        <!-- Summary Stats -->
+        <div th:if="${!resultados.isEmpty()}" class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalResultados}">0</div>
+                <div class="stat-label">Total Pruebas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${mejorPuntaje} != null ? ${mejorPuntaje} : 'N/A'">N/A</div>
+                <div class="stat-label">Mejor Puntaje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${promedioGlobal} != null ? ${#numbers.formatDecimal(promedioGlobal, 1, 2)} : 'N/A'">N/A</div>
+                <div class="stat-label">Promedio Global</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${progreso} + '%'">0%</div>
+                <div class="stat-label">Progreso</div>
+            </div>
+        </div>
+
+        <!-- Results Timeline -->
+        <div th:if="${!resultados.isEmpty()}" style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 25px;">📈 Línea de Tiempo de Resultados</h3>
+            
+            <div style="display: grid; gap: 20px;">
+                <div th:each="resultado, iter : ${resultados}" 
+                     style="border-left: 4px solid var(--color-verde-claro); padding-left: 20px; position: relative;">
+                    <div style="position: absolute; left: -10px; top: 0; background: var(--color-verde-claro); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <span th:text="${iter.index + 1}"></span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;">
+                        <div>
+                            <h4 style="color: var(--color-verde-texto); margin: 0 0 5px 0;" 
+                                th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? 'Saber Pro' : 'Saber T&T'"></h4>
+                            <p style="color: var(--color-gris-texto); margin: 0;" 
+                               th:text="'Presentado: ' + ${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></p>
+                        </div>
+                        
+                        <div style="text-align: right;">
+                            <div style="font-size: 28px; font-weight: bold; color: var(--color-verde-texto);" 
+                                 th:text="${resultado.puntajeGlobal}"></div>
+                            <div style="font-size: 14px; color: var(--color-gris-texto);">
+                                <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}">/300 puntos</span>
+                                <span th:if="${resultado.tipoPrueba == 'SABER_TT'}">/200 puntos</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 15px; align-items: center;">
+                        <span th:switch="${resultado.nivelGlobal}" class="badge">
+                            <span th:case="'Nivel 4'" class="badge-success">Nivel 4 - Excelente</span>
+                            <span th:case="'Nivel 3'" class="badge-warning">Nivel 3 - Bueno</span>
+                            <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">Nivel 2 - Básico</span>
+                            <span th:case="'Nivel 1'" class="badge-danger">Nivel 1 - Insuficiente</span>
+                        </span>
+                        
+                        <a th:href="@{/estudiante/resultado-unico?resultadoId={id}(id=${resultado.id})}" 
+                           class="btn btn-secondary btn-sm">Ver Detalle</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div th:if="${!resultados.isEmpty()}" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📊 Resumen de Desempeño</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="text-align: center; padding: 20px; border: 1px solid var(--color-gris-claro); border-radius: 10px;">
+                    <div style="font-size: 14px; color: var(--color-gris-texto); margin-bottom: 10px;">Pruebas Saber Pro</div>
+                    <div style="font-size: 24px; font-weight: bold; color: var(--color-verde-texto);" 
+                         th:text="${totalSaberPro}">0</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; border: 1px solid var(--color-gris-claro); border-radius: 10px;">
+                    <div style="font-size: 14px; color: var(--color-gris-texto); margin-bottom: 10px;">Pruebas Saber T&T</div>
+                    <div style="font-size: 24px; font-weight: bold; color: var(--color-verde-texto);" 
+                         th:text="${totalSaberTyT}">0</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; border: 1px solid var(--color-gris-claro); border-radius: 10px;">
+                    <div style="font-size: 14px; color: var(--color-gris-texto); margin-bottom: 10px;">Nivel Promedio</div>
+                    <div style="font-size: 24px; font-weight: bold; color: var(--color-verde-texto);" 
+                         th:text="${nivelPromedio} != null ? ${nivelPromedio} : 'N/A'">N/A</div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; border: 1px solid var(--color-gris-claro); border-radius: 10px;">
+                    <div style="font-size: 14px; color: var(--color-gris-texto); margin-bottom: 10px;">Tasa de Aprobación</div>
+                    <div style="font-size: 24px; font-weight: bold; color: var(--color-verde-texto);" 
+                         th:text="${tasaAprobacion} + '%'">100%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results Message -->
+        <div th:if="${resultados.isEmpty()}" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 80px; margin-bottom: 20px;">📊</div>
+            <h2 style="color: white; margin-bottom: 15px;">Aún no hay resultados</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                Una vez presentes las pruebas Saber Pro o Saber T&T, podrás consultar tu historial completo de resultados en esta sección.
+            </p>
+            <a th:href="@{/estudiante/dashboard}" class="btn btn-primary">Volver al Dashboard</a>
+        </div>
+
+        <!-- Action Buttons -->
+        <div th:if="${!resultados.isEmpty()}" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a th:href="@{/estudiante/dashboard}" class="btn btn-secondary">
+                ← Volver al Dashboard
+            </a>
+            <a th:href="@{/estudiante/comparativa}" class="btn btn-primary">
+                📉 Ver Comparativa
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                🖨️ Imprimir Historial
+            </button>
+        </div>
+    </main>
+
+    <style>
+        .timeline-item {
+            border-left: 4px solid var(--color-verde-claro);
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -10px;
+            top: 0;
+            background: var(--color-verde-claro);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-content {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</body>
+</html>

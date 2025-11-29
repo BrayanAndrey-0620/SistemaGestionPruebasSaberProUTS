@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Detallado - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a href="#" class="nav-link active">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Informe Detallado</h1>
+            <p class="dashboard-subtitle">Reporte completo con análisis detallado de todos los resultados</p>
+        </div>
+
+        <!-- Report Controls -->
+        <div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">🔍 Configuración del Reporte</h3>
+            
+            <div style="display: flex; gap: 20px; align-items: end; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <label class="form-label">Tipo de Prueba</label>
+                    <select id="filterType" class="form-input" onchange="filterDetailedReport()">
+                        <option value="all">Todas las pruebas</option>
+                        <option value="SABER_PRO">Saber Pro</option>
+                        <option value="SABER_TT">Saber T&T</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 1;">
+                    <label class="form-label">Rango de Fechas</label>
+                    <select id="filterDate" class="form-input" onchange="filterDetailedReport()">
+                        <option value="all">Todas las fechas</option>
+                        <option value="last-month">Último mes</option>
+                        <option value="last-quarter">Último trimestre</option>
+                        <option value="last-year">Último año</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 1;">
+                    <label class="form-label">Nivel de Desempeño</label>
+                    <select id="filterLevel" class="form-input" onchange="filterDetailedReport()">
+                        <option value="all">Todos los niveles</option>
+                        <option value="4">Nivel 4 (Excelente)</option>
+                        <option value="3">Nivel 3 (Bueno)</option>
+                        <option value="2">Nivel 2 (Básico)</option>
+                        <option value="1">Nivel 1 (Insuficiente)</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 2;">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" id="searchDetail" class="form-input" 
+                           placeholder="Estudiante, documento o registro..." onkeyup="filterDetailedReport()">
+                </div>
+                
+                <div>
+                    <button onclick="exportDetailedReport()" class="btn btn-primary">📊 Exportar Excel</button>
+                    <button onclick="printDetailedReport()" class="btn btn-secondary">🖨️ Imprimir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${resultadosFiltrados}">0</div>
+                <div class="stat-label">Resultados Mostrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${promedioFiltrado} != null ? ${#numbers.formatDecimal(promedioFiltrado, 1, 2)} : 'N/A'">N/A</div>
+                <div class="stat-label">Promedio Filtrado</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${tasaAprobacionFiltrada} + '%'">0%</div>
+                <div class="stat-label">Tasa Aprobación</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${mejorPuntajeFiltrado} != null ? ${mejorPuntajeFiltrado} : 'N/A'">N/A</div>
+                <div class="stat-label">Mejor Puntaje</div>
+            </div>
+        </div>
+
+        <!-- Detailed Results Table -->
+        <div class="table-container">
+            <table class="table" id="detailedTable">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Documento</th>
+                        <th>Tipo Prueba</th>
+                        <th>Fecha</th>
+                        <th>Puntaje Global</th>
+                        <th>Nivel</th>
+                        <th>Comunicación</th>
+                        <th>Razonamiento</th>
+                        <th>Lectura Crítica</th>
+                        <th>Competencias Ciudadanas</th>
+                        <th>Inglés</th>
+                        <th>Estado</th>
+                        <th>Beneficios</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="resultado : ${resultados}" 
+                        th:data-type="${resultado.tipoPrueba}"
+                        th:data-level="${resultado.nivelGlobal}"
+                        th:data-date="${#temporals.format(resultado.fechaExamen, 'yyyy-MM')}"
+                        th:data-student="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido + ' ' + resultado.estudiante.numeroDocumento}">
+                        <td>
+                            <strong th:text="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido}"></strong>
+                        </td>
+                        <td th:text="${resultado.estudiante.tipoDocumento + ' ' + resultado.estudiante.numeroDocumento}"></td>
+                        <td>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" class="badge badge-success">Saber Pro</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" class="badge badge-warning">Saber T&T</span>
+                        </td>
+                        <td th:text="${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></td>
+                        <td>
+                            <strong th:text="${resultado.puntajeGlobal}"></strong>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" style="font-size: 12px; color: var(--color-gris-texto);">/300</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" style="font-size: 12px; color: var(--color-gris-texto);">/200</span>
+                        </td>
+                        <td>
+                            <span th:switch="${resultado.nivelGlobal}" class="badge">
+                                <span th:case="'Nivel 4'" class="badge-success">N4</span>
+                                <span th:case="'Nivel 3'" class="badge-warning">N3</span>
+                                <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">N2</span>
+                                <span th:case="'Nivel 1'" class="badge-danger">N1</span>
+                            </span>
+                        </td>
+                        <td th:text="${resultado.comunicacionEscrita} != null ? ${resultado.comunicacionEscrita} : '-'"></td>
+                        <td th:text="${resultado.razonamientoCuantitativo} != null ? ${resultado.razonamientoCuantitativo} : '-'"></td>
+                        <td th:text="${resultado.lecturaCritica} != null ? ${resultado.lecturaCritica} : '-'"></td>
+                        <td th:text="${resultado.competenciasCiudadanas} != null ? ${resultado.competenciasCiudadanas} : '-'"></td>
+                        <td th:text="${resultado.ingles} != null ? ${resultado.ingles} : '-'"></td>
+                        <td>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.puntajeGlobal >= 120}" class="badge badge-success">Aprobado</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.puntajeGlobal < 120}" class="badge badge-danger">No Aprobado</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT' && resultado.puntajeGlobal >= 80}" class="badge badge-success">Aprobado</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT' && resultado.puntajeGlobal < 80}" class="badge badge-danger">No Aprobado</span>
+                        </td>
+                        <td>
+                            <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.puntajeGlobal >= 180}">
+                                <span th:if="${resultado.puntajeGlobal > 241}" class="badge badge-success">100% Beca</span>
+                                <span th:if="${resultado.puntajeGlobal >= 211 && resultado.puntajeGlobal <= 240}" class="badge badge-warning">50% Beca</span>
+                                <span th:if="${resultado.puntajeGlobal >= 180 && resultado.puntajeGlobal <= 210}" class="badge" style="background: #17a2b8; color: white;">Exoneración</span>
+                            </div>
+                            <div th:if="${resultado.tipoPrueba == 'SABER_TT' && resultado.puntajeGlobal >= 120}">
+                                <span th:if="${resultado.puntajeGlobal > 171}" class="badge badge-success">100% Beca</span>
+                                <span th:if="${resultado.puntajeGlobal >= 151 && resultado.puntajeGlobal <= 170}" class="badge badge-warning">50% Beca</span>
+                                <span th:if="${resultado.puntajeGlobal >= 120 && resultado.puntajeGlobal <= 150}" class="badge" style="background: #17a2b8; color: white;">Exoneración</span>
+                            </div>
+                            <span th:if="${(resultado.tipoPrueba == 'SABER_PRO' && resultado.puntajeGlobal < 180) || (resultado.tipoPrueba == 'SABER_TT' && resultado.puntajeGlobal < 120)}" 
+                                  style="color: var(--color-gris-texto);">-</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <a th:href="@{/coordinacion/resultados/detalle/{id}(id=${resultado.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Ver Detalle">👁️</a>
+                                <a th:href="@{/coordinacion/resultados/editar/{id}(id=${resultado.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Editar">✏️</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${resultados.empty}">
+                        <td colspan="14" style="text-align: center; color: var(--color-gris-texto); padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+                            <h3 style="color: var(--color-gris-texto); margin-bottom: 10px;">No hay resultados para mostrar</h3>
+                            <p>No se encontraron resultados que coincidan con los criterios de búsqueda.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Analysis Summary -->
+        <div style="background: white; border-radius: 12px; padding: 25px; margin-top: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📋 Análisis del Conjunto de Datos</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Distribución por Competencias</h4>
+                    <div style="display: grid; gap: 10px;">
+                        <div th:each="competencia : ${analisisCompetencias}">
+                            <div style="display: flex; justify-content: between; margin-bottom: 5px;">
+                                <span th:text="${competencia.nombre}"></span>
+                                <strong th:text="${competencia.promedio} != null ? ${#numbers.formatDecimal(competencia.promedio, 1, 2)} : 'N/A'"></strong>
+                            </div>
+                            <div style="background: var(--color-gris-claro); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div th:style="'width: ' + ${competencia.porcentaje} + '%; background: ' + ${competencia.color} + '; height: 100%;'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Tendencias</h4>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: between;">
+                            <span>Resultados por mes:</span>
+                            <strong th:text="${resultadosPorMes}"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Tasa de crecimiento:</span>
+                            <strong th:text="${tasaCrecimiento} + '%'"></strong>
+                        </div>
+                        <div style="display: flex; justify-content: between;">
+                            <span>Variación promedio:</span>
+                            <strong th:text="${variacionPromedio}"></strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--color-verde-medio); margin-bottom: 15px;">Recomendaciones</h4>
+                    <ul style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                        <li th:if="${analisisCompetencias[0].promedio < 160}">Fortalecer competencias de <strong>Comunicación Escrita</strong></li>
+                        <li th:if="${analisisCompetencias[1].promedio < 160}">Reforzar <strong>Razonamiento Cuantitativo</strong></li>
+                        <li>Programar sesiones de preparación para próximas convocatorias</li>
+                        <li>Implementar estrategias de seguimiento para estudiantes con bajo desempeño</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+            <a th:href="@{/coordinacion/dashboard}" class="btn btn-secondary">
+                ← Volver al Dashboard
+            </a>
+            <a th:href="@{/coordinacion/informes/estadisticas}" class="btn btn-primary">
+                📈 Ver Estadísticas
+            </a>
+            <a th:href="@{/coordinacion/informes/alumnos}" class="btn btn-primary">
+                👥 Ver Informe de Alumnos
+            </a>
+        </div>
+    </main>
+
+    <!-- JavaScript for Detailed Report -->
+    <script>
+        function filterDetailedReport() {
+            const typeFilter = document.getElementById('filterType').value;
+            const dateFilter = document.getElementById('filterDate').value;
+            const levelFilter = document.getElementById('filterLevel').value;
+            const searchFilter = document.getElementById('searchDetail').value.toLowerCase();
+            
+            const rows = document.querySelectorAll('#detailedTable tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const type = row.getAttribute('data-type');
+                const level = row.getAttribute('data-level');
+                const date = row.getAttribute('data-date');
+                const student = row.getAttribute('data-student').toLowerCase();
+                
+                const typeMatch = typeFilter === 'all' || type === typeFilter;
+                const levelMatch = levelFilter === 'all' || level.includes(levelFilter);
+                const searchMatch = student.includes(searchFilter);
+                
+                // Date filter logic (simplified for demo)
+                let dateMatch = true;
+                if (dateFilter === 'last-month') {
+                    // This would require actual date comparison in real implementation
+                    dateMatch = true; // Simplified
+                }
+                
+                if (typeMatch && levelMatch && dateMatch && searchMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update visible count (in real implementation, this would update statistics)
+            console.log('Resultados visibles:', visibleCount);
+        }
+        
+        function exportDetailedReport() {
+            alert('Exportando reporte detallado a Excel...');
+            // En implementación real, aquí iría la lógica para exportar a Excel
+        }
+        
+        function printDetailedReport() {
+            window.print();
+        }
+        
+        // Initialize filters
+        document.addEventListener('DOMContentLoaded', function() {
+            filterDetailedReport();
+        });
+    </script>
+
+    <style>
+        .report-controls {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px var(--color-sombra);
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 20px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .analysis-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px var(--color-sombra);
+        }
+        
+        .competency-bar {
+            background: var(--color-gris-claro);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .competency-fill {
+            height: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .control-row {
+                flex-direction: column;
+            }
+            
+            #detailedTable {
+                font-size: 12px;
+            }
+        }
+        
+        @media print {
+            .header, .btn, .report-controls {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+            }
+            
+            .table-container {
+                box-shadow: none !important;
+                border: 1px solid #000 !important;
+            }
+        }
+    </style>
+</body>
+</html>

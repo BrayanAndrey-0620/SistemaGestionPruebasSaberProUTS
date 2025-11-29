@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Beneficios - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        <nav class="nav-menu">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Mi Dashboard</a>
+            <a th:href="@{/estudiante/identificacion}" class="nav-link">Mi Identificación</a>
+            <a th:href="@{/estudiante/resultado-unico}" class="nav-link">Mi Resultado</a>
+            <a href="#" class="nav-link active">Mis Beneficios</a>
+        </nav>
+        <div class="user-info">
+            <span th:text="'Bienvenido, ' + ${estudiante.primerNombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Mis Beneficios Obtenidos</h1>
+            <p class="dashboard-subtitle">Resumen de beneficios según tus resultados en las pruebas</p>
+        </div>
+
+        <div th:if="${tieneResultados}">
+            <!-- Benefits Summary -->
+            <div class="stats-grid" style="margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-number" th:text="${totalBeneficios}">0</div>
+                    <div class="stat-label">Beneficios Obtenidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" th:text="${becasObtenidas}">0</div>
+                    <div class="stat-label">Becas Obtenidas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" th:text="${exoneraciones}">0</div>
+                    <div class="stat-label">Exoneraciones</div>
+                </div>
+            </div>
+
+            <!-- Benefits List -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 25px;">Detalle de Beneficios por Prueba</h3>
+                
+                <div th:each="resultado : ${resultados}">
+                    <div style="border: 1px solid var(--color-gris-claro); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 15px;">
+                            <div>
+                                <h4 th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? 'Saber Pro' : 'Saber T&T'" 
+                                    style="color: var(--color-verde-texto); margin: 0;"></h4>
+                                <p style="color: var(--color-gris-texto); margin: 5px 0 0 0;" 
+                                   th:text="'Puntaje: ' + ${resultado.puntajeGlobal} + ' puntos'"></p>
+                            </div>
+                            <span th:switch="${resultado.beneficio.aprobado}" class="badge" style="font-size: 14px;">
+                                <span th:case="true" class="badge-success">Aprobado</span>
+                                <span th:case="false" class="badge-danger">No Aprobado</span>
+                            </span>
+                        </div>
+                        
+                        <div th:if="${resultado.beneficio.aprobado}" style="background: #d4edda; padding: 15px; border-radius: 8px;">
+                            <strong style="color: #155724;">🎉 ¡Felicidades! Has obtenido beneficios</strong>
+                            <div style="margin-top: 10px;">
+                                <p style="margin: 5px 0; color: #155724;" th:text="${resultado.beneficio.descripcion}"></p>
+                                <div style="display: flex; gap: 20px; margin-top: 10px;">
+                                    <span th:if="${resultado.beneficio.notaAsignada != null}" 
+                                          style="color: #155724;">
+                                        <strong>Nota Asignada:</strong> <span th:text="${resultado.beneficio.notaAsignada}"></span>
+                                    </span>
+                                    <span th:if="${resultado.beneficio.porcentajeBeca > 0}" 
+                                          style="color: #155724;">
+                                        <strong>Beca:</strong> <span th:text="${resultado.beneficio.porcentajeBeca} + '%'"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${!resultado.beneficio.aprobado}" style="background: #f8d7da; padding: 15px; border-radius: 8px;">
+                            <strong style="color: #721c24;">📝 Información importante</strong>
+                            <p style="margin: 10px 0 0 0; color: #721c24;" th:text="${resultado.beneficio.mensaje}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${!tieneResultados}" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 80px; margin-bottom: 20px;">🎯</div>
+            <h2 style="color: white; margin-bottom: 15px;">Aún no hay resultados</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">
+                Una vez presentes las pruebas, podras ver los beneficios obtenidos aquí.
+            </p>
+            <a th:href="@{/estudiante/dashboard}" class="btn btn-primary">Volver al Dashboard</a>
+        </div>
+    </main>
+</body>
+</html>

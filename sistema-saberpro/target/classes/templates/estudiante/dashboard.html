@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Estudiante - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="#" class="nav-link active">Mi Dashboard</a>
+            <a th:href="@{/estudiante/identificacion}" class="nav-link">Mi Identificación</a>
+            <a th:href="@{/estudiante/resultado-unico}" class="nav-link">Mi Resultado</a>
+            <a th:href="@{/estudiante/beneficios}" class="nav-link">Mis Beneficios</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="'Bienvenido, ' + ${estudiante.primerNombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Welcome Section -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title" th:text="'¡Hola, ' + ${estudiante.primerNombre} + '!'"></h1>
+            <p class="dashboard-subtitle">Consulta tus resultados Saber Pro y los beneficios obtenidos</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalResultados}">0</div>
+                <div class="stat-label">Pruebas Presentadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${mejorPuntaje} != null ? ${mejorPuntaje} : 'N/A'">N/A</div>
+                <div class="stat-label">Mejor Puntaje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalBeneficios}">0</div>
+                <div class="stat-label">Beneficios Obtenidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${promedioGlobal} != null ? ${#numbers.formatDecimal(promedioGlobal, 1, 2)} : 'N/A'">N/A</div>
+                <div class="stat-label">Promedio Global</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px;">
+            <!-- Left Column - Recent Results -->
+            <div>
+                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        📊 Mis Últimos Resultados
+                    </h3>
+                    
+                    <div th:if="${!resultados.isEmpty()}">
+                        <div th:each="resultado : ${resultados}" style="border-bottom: 1px solid var(--color-gris-claro); padding: 15px 0;">
+                            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                                <div>
+                                    <strong th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? 'Saber Pro' : 'Saber T&T'"></strong>
+                                    <span style="color: var(--color-gris-texto); font-size: 14px; margin-left: 10px;" 
+                                          th:text="'Presentado: ' + ${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></span>
+                                </div>
+								<div style="text-align: right;">
+								    <strong th:text="${resultado.puntajeGlobal}" 
+								            th:with="colorExpression=${
+								                resultado.tipoPrueba == 'SABER_PRO' ? 
+								                    (resultado.puntajeGlobal ge 241 ? '#28a745' : 
+								                        (resultado.puntajeGlobal ge 211 ? '#ffc107' : 
+								                            (resultado.puntajeGlobal ge 180 ? '#17a2b8' : '#6c757d'))) : 
+								                    (resultado.puntajeGlobal gt 171 ? '#28a745' :  
+								                        (resultado.puntajeGlobal ge 151 ? '#ffc107' : 
+								                            (resultado.puntajeGlobal ge 120 ? '#17a2b8' : '#6c757d')))}"
+								            th:style="'font-size: 24px; color: ' + ${colorExpression}"
+								    ></strong>
+								    <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" style="font-size: 14px; color: var(--color-gris-texto);">/300</span>
+								    <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" style="font-size: 14px; color: var(--color-gris-texto);">/200</span>
+								</div>
+                            </div>
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span th:switch="${resultado.nivelGlobal}" class="badge">
+                                    <span th:case="'Nivel 4'" class="badge-success">Nivel 4 - Excelente</span>
+                                    <span th:case="'Nivel 3'" class="badge-warning">Nivel 3 - Bueno</span>
+                                    <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">Nivel 2 - Básico</span>
+                                    <span th:case="'Nivel 1'" class="badge-danger">Nivel 1 - Insuficiente</span>
+                                </span>
+                                <a th:href="@{/estudiante/resultado-unico}" class="btn btn-secondary btn-sm">Ver Detalle</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${resultados.isEmpty()}" style="text-align: center; padding: 40px; color: var(--color-gris-texto);">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
+                        <h4 style="margin-bottom: 10px;">No hay resultados registrados</h4>
+                        <p>Una vez presentes las pruebas, aquí podrás ver tus resultados.</p>
+                    </div>
+                </div>
+
+                <!-- Competencies Overview -->
+                <div th:if="${!resultados.isEmpty()}" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        🎯 Mis Competencias
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div th:each="competencia : ${competenciasResumen}" style="text-align: center; padding: 15px; border: 1px solid var(--color-gris-claro); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--color-gris-texto); margin-bottom: 5px;" th:text="${competencia.nombre}"></div>
+                            <div style="font-size: 20px; font-weight: bold; color: var(--color-verde-texto);" th:text="${competencia.puntaje}"></div>
+                            <div style="font-size: 11px; color: var(--color-gris-texto);" th:text="${competencia.nivel}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Benefits and Actions -->
+            <div>
+                <!-- Benefits Summary -->
+                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        🏆 Mis Beneficios
+                    </h3>
+                    
+                    <div th:if="${tieneBeneficios}">
+                        <div th:each="beneficio : ${beneficiosPrincipales}" style="background: var(--color-fondo-input); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--color-verde-claro);">
+                            <strong th:text="${beneficio.descripcion}"></strong>
+                            <div style="display: flex; justify-content: between; margin-top: 5px;">
+                                <span th:if="${beneficio.notaAsignada != null}" 
+                                      th:text="'Nota: ' + ${beneficio.notaAsignada}" 
+                                      style="color: #28a745; font-size: 14px;"></span>
+                                <span th:if="${beneficio.porcentajeBeca > 0}" 
+                                      th:text="'Beca: ' + ${beneficio.porcentajeBeca} + '%'" 
+                                      style="color: #28a745; font-size: 14px;"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${!tieneBeneficios && tieneResultados}" style="text-align: center; color: var(--color-gris-texto); padding: 20px;">
+                        <div style="font-size: 32px; margin-bottom: 10px;">📈</div>
+                        <p>Puedes obtener beneficios mejorando tu puntaje.</p>
+                    </div>
+                    
+                    <div th:if="${!tieneResultados}" style="text-align: center; color: var(--color-gris-texto); padding: 20px;">
+                        <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
+                        <p>Presenta las pruebas para obtener beneficios.</p>
+                    </div>
+                    
+                    <a th:href="@{/estudiante/beneficios}" class="btn btn-primary" style="width: 100%; margin-top: 15px;">
+                        Ver Todos Mis Beneficios
+                    </a>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        ⚡ Acciones Rápidas
+                    </h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <a th:href="@{/estudiante/identificacion}" class="btn btn-secondary" style="text-align: left; justify-content: flex-start;">
+                            👤 Mi Información Personal
+                        </a>
+                        <a th:href="@{/estudiante/resultado-unico}" class="btn btn-secondary" style="text-align: left; justify-content: flex-start;">
+                            📊 Ver Mi Resultado Detallado
+                        </a>
+                        <a th:href="@{/estudiante/resultados-totales}" class="btn btn-secondary" style="text-align: left; justify-content: flex-start;">
+                            📈 Todos Mis Resultados
+                        </a>
+                        <a th:href="@{/estudiante/comparativa}" class="btn btn-secondary" style="text-align: left; justify-content: flex-start;">
+                            📉 Comparar con Promedios
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Important Dates -->
+                <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        📅 Próximas Pruebas
+                    </h3>
+                    
+                    <div style="color: var(--color-gris-texto);">
+                        <div style="margin-bottom: 15px;">
+                            <strong>Saber Pro 2024</strong>
+                            <div style="font-size: 14px;">Inscripciones: Agosto 2024</div>
+                            <div style="font-size: 14px;">Aplicación: Octubre 2024</div>
+                        </div>
+                        <div>
+                            <strong>Saber T&T 2024</strong>
+                            <div style="font-size: 14px;">Inscripciones: Julio 2024</div>
+                            <div style="font-size: 14px;">Aplicación: Septiembre 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motivation Section -->
+        <div th:if="${!resultados.isEmpty()}" style="background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-bosque)); color: white; border-radius: 12px; padding: 30px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;">
+                <div>
+                    <h3 style="margin-bottom: 10px;">¡Sigue mejorando!</h3>
+                    <p style="margin-bottom: 0; opacity: 0.9;">
+                        Tu dedicación se refleja en tus resultados. Continúa esforzándote para alcanzar 
+                        nuevos beneficios y oportunidades académicas.
+                    </p>
+                </div>
+                <div style="font-size: 48px;">🚀</div>
+            </div>
+        </div>
+
+        <!-- Support Information -->
+        <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h4 style="color: var(--color-verde-texto); margin-bottom: 15px;">📞 ¿Necesitas Ayuda?</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <strong>Coordinación de Pruebas</strong>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">Ing. Yezid Yair García</div>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">ygarcia@uts.edu.co</div>
+                </div>
+                <div>
+                    <strong>Bienestar Universitario</strong>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">Orientación académica</div>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">bienestar@uts.edu.co</div>
+                </div>
+                <div>
+                    <strong>Registro y Control</strong>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">Procesos de grado</div>
+                    <div style="font-size: 14px; color: var(--color-gris-texto);">registro@uts.edu.co</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript for Dashboard -->
+    <script>
+        // Simple animations for dashboard elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stat cards on load
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Initialize all stat cards with hidden state
+            statCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease';
+            });
+        });
+
+        // Function to refresh dashboard data (could be used with AJAX)
+        function refreshDashboard() {
+            // In a real implementation, this would fetch updated data
+            console.log('Refreshing dashboard data...');
+            // location.reload(); // Simple refresh for demo
+        }
+
+        // Auto-refresh every 5 minutes (optional)
+        // setInterval(refreshDashboard, 300000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a href="#" class="nav-link active">Resultados</a>
+            <a th:href="@{/coordinacion/informes/beneficios}" class="nav-link">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Gestión de Resultados</h1>
+            <p class="dashboard-subtitle">Administre los resultados de pruebas Saber Pro y T&T</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${#lists.size(resultados)}">0</div>
+                <div class="stat-label">Total Resultados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${resultadosPro}">0</div>
+                <div class="stat-label">Saber Pro</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${resultadosTyT}">0</div>
+                <div class="stat-label">Saber T&T</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${promedioGlobal} != null ? ${#numbers.formatDecimal(promedioGlobal, 1, 2)} : 'N/A'">N/A</div>
+                <div class="stat-label">Promedio Global</div>
+            </div>
+        </div>
+
+        <!-- Filters and Actions -->
+        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: end; gap: 20px;">
+                <div style="flex: 1;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 15px;">Filtros</h3>
+                    <div style="display: flex; gap: 15px; align-items: end;">
+                        <div style="flex: 1;">
+                            <label class="form-label">Tipo de Prueba</label>
+                            <select id="filterType" class="form-input" onchange="filterResults()">
+                                <option value="all">Todos los tipos</option>
+                                <option value="SABER_PRO">Saber Pro</option>
+                                <option value="SABER_TT">Saber T&T</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Nivel</label>
+                            <select id="filterLevel" class="form-input" onchange="filterResults()">
+                                <option value="all">Todos los niveles</option>
+                                <option value="4">Nivel 4</option>
+                                <option value="3">Nivel 3</option>
+                                <option value="2">Nivel 2</option>
+                                <option value="1">Nivel 1</option>
+                            </select>
+                        </div>
+                        <div style="flex: 2;">
+                            <label class="form-label">Buscar Estudiante</label>
+                            <input type="text" id="searchStudent" class="form-input" 
+                                   placeholder="Nombre o documento del estudiante..." onkeyup="filterResults()">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a th:href="@{/coordinacion/resultados/nuevo}" class="btn btn-primary">➕ Nuevo Resultado</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-container">
+            <table class="table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Documento</th>
+                        <th>Tipo Prueba</th>
+                        <th>Puntaje Global</th>
+                        <th>Nivel</th>
+                        <th>Lectura Crítica</th>
+                        <th>Razonamiento</th>
+                        <th>Inglés</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="resultado : ${resultados}" 
+                        th:data-type="${resultado.tipoPrueba}"
+                        th:data-level="${resultado.nivelGlobal}"
+                        th:data-student="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido + ' ' + resultado.estudiante.numeroDocumento}">
+                        <td>
+                            <strong th:text="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido}"></strong>
+                        </td>
+                        <td th:text="${resultado.estudiante.tipoDocumento + ' ' + resultado.estudiante.numeroDocumento}"></td>
+                        <td>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" class="badge badge-success">Saber Pro</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" class="badge badge-warning">Saber T&T</span>
+                        </td>
+                        <td>
+                            <strong th:text="${resultado.puntajeGlobal}" 
+							th:style="'font-weight: bold; ' + (
+							    (${resultado.tipoPrueba == 'SABER_PRO' and resultado.puntajeGlobal >= 241}) ? 'color: #28a745;' :
+							    (
+							        (${resultado.tipoPrueba == 'SABER_PRO' and resultado.puntajeGlobal >= 211}) ? 'color: #ffc107;' :
+							        (
+							            (${resultado.tipoPrueba == 'SABER_TT' and resultado.puntajeGlobal >= 171}) ? 'color: #28a745;' :
+							            (
+							                (${resultado.tipoPrueba == 'SABER_TT' and resultado.puntajeGlobal >= 151}) ? 'color: #ffc107;' : 'color: #6c757d;'
+							            )
+							        )
+							    )
+							)"
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" style="font-size: 12px; color: var(--color-gris-texto);">/300</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" style="font-size: 12px; color: var(--color-gris-texto);">/200</span>
+                        </td>
+                        <td>
+                            <span th:switch="${resultado.nivelGlobal}" class="badge">
+                                <span th:case="'Nivel 4'" class="badge-success">Nivel 4</span>
+                                <span th:case="'Nivel 3'" class="badge-warning">Nivel 3</span>
+                                <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">Nivel 2</span>
+                                <span th:case="'Nivel 1'" class="badge-danger">Nivel 1</span>
+                                <span th:case="*" th:text="${resultado.nivelGlobal}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:text="${resultado.lecturaCritica}"></span>
+                            <br>
+                            <small th:text="${resultado.nivelLecturaCritica}" style="color: var(--color-gris-texto);"></small>
+                        </td>
+                        <td>
+                            <span th:text="${resultado.razonamientoCuantitativo}"></span>
+                            <br>
+                            <small th:text="${resultado.nivelRazonamientoCuantitativo}" style="color: var(--color-gris-texto);"></small>
+                        </td>
+                        <td>
+                            <span th:text="${resultado.ingles}"></span>
+                            <br>
+                            <small th:text="${resultado.nivelInglesMarco}" style="color: var(--color-gris-texto);"></small>
+                        </td>
+                        <td th:text="${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <a th:href="@{/coordinacion/resultados/editar/{id}(id=${resultado.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Editar">✏️</a>
+                                <a th:href="@{/coordinacion/resultados/eliminar/{id}(id=${resultado.id})}" 
+                                   class="btn btn-secondary btn-sm" 
+                                   onclick="return confirm('¿Está seguro de eliminar este resultado?')"
+                                   title="Eliminar">🗑️</a>
+                                <a th:href="@{/coordinacion/resultados/detalle/{id}(id=${resultado.id})}" 
+                                   class="btn btn-secondary btn-sm" title="Ver Detalle">👁️</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${resultados.empty}">
+                        <td colspan="10" style="text-align: center; color: var(--color-gris-texto); padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+                            <h3 style="color: var(--color-gris-texto); margin-bottom: 10px;">No hay resultados registrados</h3>
+                            <p>Comience registrando el primer resultado del estudiante.</p>
+                            <a th:href="@{/coordinacion/resultados/nuevo}" class="btn btn-primary" style="margin-top: 15px;">
+                                ➕ Registrar Primer Resultado
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Export Options -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px;">
+            <button class="btn btn-secondary" onclick="exportToPDF()">📄 Exportar PDF</button>
+            <button class="btn btn-secondary" onclick="exportToExcel()">📊 Exportar Excel</button>
+        </div>
+    </main>
+
+    <!-- JavaScript for Filtering and Export -->
+    <script>
+        function filterResults() {
+            const typeFilter = document.getElementById('filterType').value;
+            const levelFilter = document.getElementById('filterLevel').value;
+            const searchFilter = document.getElementById('searchStudent').value.toLowerCase();
+            
+            const rows = document.querySelectorAll('#resultsTable tbody tr');
+            
+            rows.forEach(row => {
+                const type = row.getAttribute('data-type');
+                const level = row.getAttribute('data-level');
+                const student = row.getAttribute('data-student').toLowerCase();
+                
+                const typeMatch = typeFilter === 'all' || type === typeFilter;
+                const levelMatch = levelFilter === 'all' || level.includes(levelFilter);
+                const searchMatch = student.includes(searchFilter);
+                
+                if (typeMatch && levelMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function exportToPDF() {
+            alert('Funcionalidad de exportación PDF en desarrollo');
+            // Aquí iría la lógica para generar PDF
+        }
+        
+        function exportToExcel() {
+            alert('Funcionalidad de exportación Excel en desarrollo');
+            // Aquí iría la lógica para generar Excel
+        }
+        
+        // Initialize filters
+        document.addEventListener('DOMContentLoaded', function() {
+            filterResults();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudiantes - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a href="#" class="nav-link active">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a th:href="@{/coordinacion/informes/beneficios}" class="nav-link">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Gestión de Estudiantes</h1>
+            <p class="dashboard-subtitle">Administre la información de los estudiantes</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <form th:action="@{/coordinacion/buscar}" method="get" style="display: flex; gap: 10px; align-items: end;">
+                <div style="flex: 1;">
+                    <label class="form-label">Buscar por:</label>
+                    <select name="criterio" class="form-input">
+                        <option value="documento">Documento</option>
+                        <option value="apellido">Apellido</option>
+                        <option value="nombre">Nombre</option>
+                        <option value="registro">Registro</option>
+                    </select>
+                </div>
+                <div style="flex: 2;">
+                    <label class="form-label">Término de búsqueda:</label>
+                    <input type="text" name="valor" class="form-input" placeholder="Ingrese término de búsqueda...">
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-secondary">Buscar</button>
+                    <a th:href="@{/coordinacion/estudiantes}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: white;">Lista de Estudiantes</h2>
+            <a th:href="@{/coordinacion/estudiantes/nuevo}" class="btn btn-primary">➕ Nuevo Estudiante</a>
+        </div>
+
+        <!-- Students Table -->
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Documento</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="estudiante : ${estudiantes}">
+                        <td th:text="${estudiante.tipoDocumento + ' ' + estudiante.numeroDocumento}"></td>
+                        <td th:text="${estudiante.primerNombre + ' ' + estudiante.primerApellido}"></td>
+                        <td th:text="${estudiante.correoElectronico}"></td>
+                        <td th:text="${estudiante.numeroTelefonico}"></td>
+                        <td th:text="${estudiante.numeroRegistro}"></td>
+                        <td>
+                            <a th:href="@{/coordinacion/estudiantes/editar/{id}(id=${estudiante.id})}" 
+                               class="btn btn-secondary btn-sm">Editar</a>
+                            <a th:href="@{/coordinacion/estudiantes/eliminar/{id}(id=${estudiante.id})}" 
+                               class="btn btn-secondary btn-sm" 
+                               onclick="return confirm('¿Está seguro de eliminar este estudiante?')">Eliminar</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${estudiantes.empty}">
+                        <td colspan="6" style="text-align: center; color: var(--color-gris-texto);">
+                            No se encontraron estudiantes
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

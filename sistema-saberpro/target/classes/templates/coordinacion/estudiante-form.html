@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${estudiante.id != null} ? 'Editar Estudiante - UTS' : 'Nuevo Estudiante - UTS'"></title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a th:href="@{/coordinacion/informes/beneficios}" class="nav-link">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title" th:text="${estudiante.id != null} ? 'Editar Estudiante' : 'Nuevo Estudiante'"></h1>
+            <p class="dashboard-subtitle" th:text="${estudiante.id != null} ? 
+                'Actualice la información del estudiante' : 
+                'Registre un nuevo estudiante en el sistema'"></p>
+        </div>
+
+        <!-- Student Form -->
+        <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <form th:action="@{/coordinacion/estudiantes/guardar}" th:object="${estudiante}" method="post">
+                <!-- Hidden ID for editing -->
+                <input type="hidden" th:field="*{id}">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                    <!-- Document Information -->
+                    <div>
+                        <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro);">
+                            📋 Información Documental
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
+                            <select th:field="*{tipoDocumento}" id="tipoDocumento" class="form-input" required>
+                                <option value="">Seleccione tipo</option>
+                                <option value="CC">Cédula de Ciudadanía</option>
+                                <option value="TI">Tarjeta de Identidad</option>
+                                <option value="CE">Cédula de Extranjería</option>
+                                <option value="PA">Pasaporte</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numeroDocumento" class="form-label">Número de Documento *</label>
+                            <input type="text" th:field="*{numeroDocumento}" id="numeroDocumento" 
+                                   class="form-input" placeholder="Ej: 123456789" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numeroRegistro" class="form-label">Número de Registro *</label>
+                            <input type="text" th:field="*{numeroRegistro}" id="numeroRegistro" 
+                                   class="form-input" placeholder="Ej: EK20183007722" required>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div>
+                        <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro);">
+                            👤 Información Personal
+                        </h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="primerNombre" class="form-label">Primer Nombre *</label>
+                                <input type="text" th:field="*{primerNombre}" id="primerNombre" 
+                                       class="form-input" placeholder="Primer nombre" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="segundoNombre" class="form-label">Segundo Nombre</label>
+                                <input type="text" th:field="*{segundoNombre}" id="segundoNombre" 
+                                       class="form-input" placeholder="Segundo nombre">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="primerApellido" class="form-label">Primer Apellido *</label>
+                                <input type="text" th:field="*{primerApellido}" id="primerApellido" 
+                                       class="form-input" placeholder="Primer apellido" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="segundoApellido" class="form-label">Segundo Apellido</label>
+                                <input type="text" th:field="*{segundoApellido}" id="segundoApellido" 
+                                       class="form-input" placeholder="Segundo apellido">
+                            </div>
+							
+							<!-- Agregar en la sección de Información Documental -->
+							<div class="form-group">
+							    <label for="password" class="form-label">Contraseña para el estudiante *</label>
+							    <input type="password" name="password" id="password" 
+							           class="form-input" placeholder="Contraseña para inicio de sesión" 
+							           value="123456" required>
+							    <small class="help-text">El estudiante usará su número de documento como usuario</small>
+							</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro);">
+                    📞 Información de Contacto
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                        <div class="form-group">
+                            <label for="correoElectronico" class="form-label">Correo Electrónico *</label>
+                            <input type="email" th:field="*{correoElectronico}" id="correoElectronico" 
+                                   class="form-input" placeholder="ejemplo@uts.edu.co" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numeroTelefonico" class="form-label">Número Telefónico *</label>
+                            <input type="tel" th:field="*{numeroTelefonico}" id="numeroTelefonico" 
+                                   class="form-input" placeholder="Ej: 3001234567" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div style="display: flex; gap: 15px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--color-gris-claro);">
+                    <a th:href="@{/coordinacion/estudiantes}" class="btn btn-secondary">
+                        ❌ Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <span th:if="${estudiante.id != null}">💾 Actualizar Estudiante</span>
+                        <span th:if="${estudiante.id == null}">➕ Registrar Estudiante</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Information -->
+        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h4 style="color: var(--color-verde-texto); margin-bottom: 15px;">💡 Información Importante</h4>
+            <ul style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                <li>Los campos marcados con * son obligatorios</li>
+                <li>El número de documento debe ser único para cada estudiante</li>
+                <li>El número de registro es el código único asignado por la institución</li>
+                <li>Verifique que la información de contacto sea correcta para notificaciones</li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- JavaScript for Form Validation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                const requiredFields = form.querySelectorAll('[required]');
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.style.borderColor = '#dc3545';
+                    } else {
+                        field.style.borderColor = '';
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Por favor complete todos los campos obligatorios.');
+                }
+            });
+
+            // Real-time validation for document number
+            const docNumber = document.getElementById('numeroDocumento');
+            if (docNumber) {
+                docNumber.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+            }
+
+            // Real-time validation for phone number
+            const phoneNumber = document.getElementById('numeroTelefonico');
+            if (phoneNumber) {
+                phoneNumber.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

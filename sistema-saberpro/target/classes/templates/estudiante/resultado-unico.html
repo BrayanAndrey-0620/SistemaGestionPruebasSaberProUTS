@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Resultado - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Mi Dashboard</a>
+            <a th:href="@{/estudiante/identificacion}" class="nav-link">Mi Identificación</a>
+            <a href="#" class="nav-link active">Mi Resultado</a>
+            <a th:href="@{/estudiante/beneficios}" class="nav-link">Mis Beneficios</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="'Bienvenido, ' + ${estudiante.primerNombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Mi Resultado de Prueba</h1>
+            <p class="dashboard-subtitle" th:if="${resultado != null}" 
+               th:text="'Prueba ' + ${resultado.tipoPrueba == 'SABER_PRO'} ? 'Saber Pro' : 'Saber T&T' + ' presentada el ' + ${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></p>
+            <p class="dashboard-subtitle" th:if="${resultado == null && tieneMultiplesResultados}">Selecciona un resultado para ver el detalle</p>
+        </div>
+
+        <!-- Multiple Results Selection -->
+        <div th:if="${tieneMultiplesResultados}" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+            <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">Selecciona un Resultado</h3>
+            <div style="display: grid; gap: 15px;">
+                <div th:each="resultadoItem : ${resultados}" 
+                     style="border: 1px solid var(--color-gris-claro); border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s ease;"
+                     th:onclick="'location.href=\'/estudiante/resultado-unico?resultadoId=' + ${resultadoItem.id} + '\''"
+                     th:class="${resultado != null && resultado.id == resultadoItem.id} ? 'selected-result' : ''">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <div>
+                            <strong th:text="${resultadoItem.tipoPrueba == 'SABER_PRO'} ? 'Saber Pro' : 'Saber T&T'"></strong>
+                            <span style="color: var(--color-gris-texto); margin-left: 10px;" 
+                                  th:text="'Presentado: ' + ${#temporals.format(resultadoItem.fechaExamen, 'dd/MM/yyyy')}"></span>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong th:text="${resultadoItem.puntajeGlobal}" style="font-size: 24px;"></strong>
+                            <span th:if="${resultadoItem.tipoPrueba == 'SABER_PRO'}" style="font-size: 14px; color: var(--color-gris-texto);">/300</span>
+                            <span th:if="${resultadoItem.tipoPrueba == 'SABER_TT'}" style="font-size: 14px; color: var(--color-gris-texto);">/200</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span th:switch="${resultadoItem.nivelGlobal}" class="badge">
+                            <span th:case="'Nivel 4'" class="badge-success">Nivel 4 - Excelente</span>
+                            <span th:case="'Nivel 3'" class="badge-warning">Nivel 3 - Bueno</span>
+                            <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">Nivel 2 - Básico</span>
+                            <span th:case="'Nivel 1'" class="badge-danger">Nivel 1 - Insuficiente</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Result Detail -->
+        <div th:if="${resultado != null}" style="max-width: 1000px; margin: 0 auto;">
+            <!-- Overall Score Card -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px; text-align: center;">
+                <div style="display: inline-block; background: linear-gradient(135deg, var(--color-verde-claro), var(--color-verde-medio)); color: white; padding: 20px 40px; border-radius: 15px; margin-bottom: 20px;">
+                    <div style="font-size: 14px; opacity: 0.9;">PUNTAJE GLOBAL</div>
+                    <div style="font-size: 48px; font-weight: bold;" th:text="${resultado.puntajeGlobal}"></div>
+                    <div style="font-size: 16px; opacity: 0.9;" th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? '/ 300 puntos' : '/ 200 puntos'"></div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <span th:switch="${resultado.nivelGlobal}" class="badge" style="font-size: 16px; padding: 10px 20px;">
+                        <span th:case="'Nivel 4'" class="badge-success">🎉 Nivel 4 - Excelente</span>
+                        <span th:case="'Nivel 3'" class="badge-warning">👍 Nivel 3 - Bueno</span>
+                        <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">📊 Nivel 2 - Básico</span>
+                        <span th:case="'Nivel 1'" class="badge-danger">📝 Nivel 1 - Insuficiente</span>
+                    </span>
+                </div>
+                
+                <div style="margin-top: 15px; color: var(--color-gris-texto);" 
+                     th:text="'Fecha de presentación: ' + ${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></div>
+            </div>
+
+            <!-- Competencies Grid -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 25px; text-align: center;">Competencias Evaluadas</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <!-- Comunicación Escrita -->
+                    <div th:if="${resultado.comunicacionEscrita != null}" class="competency-card">
+                        <div class="competency-icon">📝</div>
+                        <div class="competency-name">Comunicación Escrita</div>
+                        <div class="competency-score" th:text="${resultado.comunicacionEscrita}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelComunicacionEscrita}"></div>
+                    </div>
+
+                    <!-- Razonamiento Cuantitativo -->
+                    <div th:if="${resultado.razonamientoCuantitativo != null}" class="competency-card">
+                        <div class="competency-icon">🔢</div>
+                        <div class="competency-name">Razonamiento Cuantitativo</div>
+                        <div class="competency-score" th:text="${resultado.razonamientoCuantitativo}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelRazonamientoCuantitativo}"></div>
+                    </div>
+
+                    <!-- Lectura Crítica -->
+                    <div th:if="${resultado.lecturaCritica != null}" class="competency-card">
+                        <div class="competency-icon">📖</div>
+                        <div class="competency-name">Lectura Crítica</div>
+                        <div class="competency-score" th:text="${resultado.lecturaCritica}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelLecturaCritica}"></div>
+                    </div>
+
+                    <!-- Competencias Ciudadanas -->
+                    <div th:if="${resultado.competenciasCiudadanas != null}" class="competency-card">
+                        <div class="competency-icon">🌍</div>
+                        <div class="competency-name">Competencias Ciudadanas</div>
+                        <div class="competency-score" th:text="${resultado.competenciasCiudadanas}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelCompetenciasCiudadanas}"></div>
+                    </div>
+
+                    <!-- Inglés -->
+                    <div th:if="${resultado.ingles != null}" class="competency-card">
+                        <div class="competency-icon">🌐</div>
+                        <div class="competency-name">Inglés</div>
+                        <div class="competency-score" th:text="${resultado.ingles}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelInglesMarco != null ? resultado.nivelInglesMarco : resultado.nivelIngles}"></div>
+                    </div>
+
+                    <!-- Competencias Específicas para Saber Pro -->
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.formulacionProyectos != null}" class="competency-card">
+                        <div class="competency-icon">📋</div>
+                        <div class="competency-name">Formulación de Proyectos</div>
+                        <div class="competency-score" th:text="${resultado.formulacionProyectos}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelFormulacionProyectos}"></div>
+                    </div>
+
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.pensamientoCientifico != null}" class="competency-card">
+                        <div class="competency-icon">🔬</div>
+                        <div class="competency-name">Pensamiento Científico</div>
+                        <div class="competency-score" th:text="${resultado.pensamientoCientifico}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelPensamientoCientifico}"></div>
+                    </div>
+
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.disenoSoftware != null}" class="competency-card">
+                        <div class="competency-icon">💻</div>
+                        <div class="competency-name">Diseño de Software</div>
+                        <div class="competency-score" th:text="${resultado.disenoSoftware}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelDisenoSoftware}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Analysis -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📈 Análisis de Desempeño</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--color-gris-texto);">Posición</div>
+                        <div style="font-size: 20px; font-weight: bold; color: var(--color-verde-texto);" th:text="${posicionPercentil} != null ? ${posicionPercentil} + '%' : 'N/A'"></div>
+                        <div style="font-size: 11px; color: var(--color-gris-texto);">Percentil Nacional</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--color-gris-texto);">Estado</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #28a745;">Aprobado</div>
+                        <div style="font-size: 11px; color: var(--color-gris-texto);" th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? 'Mínimo: 120' : 'Mínimo: 80'"></div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--color-gris-texto);">Comparativa</div>
+                        <div style="font-size: 20px; font-weight: bold; color: var(--color-verde-texto);" th:text="${comparativaPromedio} != null ? ${comparativaPromedio} : 'N/A'"></div>
+                        <div style="font-size: 11px; color: var(--color-gris-texto);">vs Promedio Nacional</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a th:href="@{/estudiante/dashboard}" class="btn btn-secondary">
+                    ← Volver al Dashboard
+                </a>
+                <a th:href="@{/estudiante/beneficios}" class="btn btn-primary">
+                    🏆 Ver Mis Beneficios
+                </a>
+                <button onclick="window.print()" class="btn btn-primary">
+                    🖨️ Imprimir Resultado
+                </button>
+            </div>
+        </div>
+
+        <!-- No Results Message -->
+        <div th:if="${resultado == null && !tieneMultiplesResultados}" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 80px; margin-bottom: 20px;">📊</div>
+            <h2 style="color: white; margin-bottom: 15px;">No hay resultados disponibles</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                Una vez presentes las pruebas Saber Pro o Saber T&T, podrás consultar tus resultados en esta sección.
+            </p>
+            <a th:href="@{/estudiante/dashboard}" class="btn btn-primary">Volver al Dashboard</a>
+        </div>
+    </main>
+
+    <style>
+        .selected-result {
+            border-color: var(--color-verde-claro) !important;
+            background: var(--color-fondo-input);
+        }
+        
+        .competency-card {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid var(--color-gris-claro);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .competency-card:hover {
+            border-color: var(--color-verde-claro);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .competency-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .competency-name {
+            font-size: 14px;
+            color: var(--color-gris-texto);
+            margin-bottom: 10px;
+        }
+        
+        .competency-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--color-verde-texto);
+            margin-bottom: 5px;
+        }
+        
+        .competency-level {
+            font-size: 12px;
+            color: var(--color-gris-texto);
+        }
+        
+        @media (max-width: 768px) {
+            .competency-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</body>
+</html>

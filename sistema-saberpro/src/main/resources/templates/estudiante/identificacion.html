@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Identificación - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Mi Dashboard</a>
+            <a href="#" class="nav-link active">Mi Identificación</a>
+            <a th:href="@{/estudiante/resultado-unico}" class="nav-link">Mi Resultado</a>
+            <a th:href="@{/estudiante/beneficios}" class="nav-link">Mis Beneficios</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="'Bienvenido, ' + ${estudiante.primerNombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Mi Información Personal</h1>
+            <p class="dashboard-subtitle">Consulta y verifica tu información registrada en el sistema</p>
+        </div>
+
+        <!-- Student Information Card -->
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <!-- Personal Information -->
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro); display: flex; align-items: center; gap: 10px;">
+                        👤 Información Personal
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label class="form-label">Nombre Completo</label>
+                            <div class="info-value" th:text="${estudiante.primerNombre + ' ' + (estudiante.segundoNombre != null ? estudiante.segundoNombre + ' ' : '') + estudiante.primerApellido + ' ' + (estudiante.segundoApellido != null ? estudiante.segundoApellido : '')}"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Tipo de Documento</label>
+                            <div class="info-value" th:text="${estudiante.tipoDocumento}"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Número de Documento</label>
+                            <div class="info-value" th:text="${estudiante.numeroDocumento}"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Número de Registro</label>
+                            <div class="info-value" th:text="${estudiante.numeroRegistro}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro); display: flex; align-items: center; gap: 10px;">
+                        📞 Información de Contacto
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label class="form-label">Correo Electrónico</label>
+                            <div class="info-value" th:text="${estudiante.correoElectronico}"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Número Telefónico</label>
+                            <div class="info-value" th:text="${estudiante.numeroTelefonico}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div>
+                    <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--color-gris-claro); display: flex; align-items: center; gap: 10px;">
+                        📊 Resumen Académico
+                    </h3>
+                    
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="stat-card">
+                            <div class="stat-number" th:text="${totalPruebas}">0</div>
+                            <div class="stat-label">Pruebas Presentadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" th:text="${promedioGlobal} != null ? ${#numbers.formatDecimal(promedioGlobal, 1, 2)} : 'N/A'">N/A</div>
+                            <div class="stat-label">Promedio Global</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" th:text="${nivelActual} != null ? ${nivelActual} : 'N/A'">N/A</div>
+                            <div class="stat-label">Nivel Actual</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a th:href="@{/estudiante/dashboard}" class="btn btn-secondary">
+                    ← Volver al Dashboard
+                </a>
+                <button onclick="window.print()" class="btn btn-primary">
+                    🖨️ Imprimir Información
+                </button>
+            </div>
+        </div>
+
+        <!-- Help Information -->
+        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 5px 20px var(--color-sombra); max-width: 800px; margin: 20px auto 0;">
+            <h4 style="color: var(--color-verde-texto); margin-bottom: 15px;">💡 Información Importante</h4>
+            <div style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                <p><strong>Verificación de datos:</strong> Esta información es utilizada para todos los procesos académicos y de grado. 
+                Si encuentras algún error, contacta inmediatamente a la coordinación.</p>
+                <p><strong>Confidencialidad:</strong> Tus datos personales están protegidos según la ley de protección de datos personales.</p>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .info-value {
+            background: var(--color-fondo-input);
+            border: 1px solid var(--color-gris-claro);
+            border-radius: 6px;
+            padding: 12px 15px;
+            font-size: 16px;
+            color: var(--color-verde-texto);
+            margin-top: 5px;
+        }
+        
+        @media print {
+            .header, .btn, .dashboard-header, .help-info {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+            }
+            
+            .info-value {
+                background: white !important;
+                border: 1px solid #000 !important;
+            }
+        }
+    </style>
+</body>
+</html>

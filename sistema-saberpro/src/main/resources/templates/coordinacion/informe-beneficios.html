@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Beneficios - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a href="#" class="nav-link active">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Informe de Beneficios</h1>
+            <p class="dashboard-subtitle">Resumen de beneficios obtenidos por los estudiantes según sus resultados</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${totalEstudiantes}">0</div>
+                <div class="stat-label">Total Estudiantes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${estudiantesConBeneficios}">0</div>
+                <div class="stat-label">Con Beneficios</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${estudiantesAprobados}">0</div>
+                <div class="stat-label">Aprobados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${porcentajeBeneficios} + '%'">0%</div>
+                <div class="stat-label">% con Beneficios</div>
+            </div>
+        </div>
+
+        <!-- Benefits Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <!-- Saber Pro Benefits -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    🎓 Saber Pro
+                </h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Excelente (241+):</span>
+                    <strong th:text="${beneficiosProExcelente}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Muy Bueno (211-240):</span>
+                    <strong th:text="${beneficiosProMuyBueno}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Bueno (180-210):</span>
+                    <strong th:text="${beneficiosProBueno}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--color-gris-texto);">Aprobados:</span>
+                    <strong th:text="${aprobadosPro}">0</strong>
+                </div>
+            </div>
+
+            <!-- Saber T&T Benefits -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    📚 Saber T&T
+                </h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Excelente (171+):</span>
+                    <strong th:text="${beneficiosTyTExcelente}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Muy Bueno (151-170):</span>
+                    <strong th:text="${beneficiosTyTMuyBueno}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Bueno (120-150):</span>
+                    <strong th:text="${beneficiosTyTBueno}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--color-gris-texto);">Aprobados:</span>
+                    <strong th:text="${aprobadosTyT}">0</strong>
+                </div>
+            </div>
+
+            <!-- Economic Impact -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra);">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    💰 Impacto Económico
+                </h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Becas 100%:</span>
+                    <strong th:text="${becas100}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="color: var(--color-gris-texto);">Becas 50%:</span>
+                    <strong th:text="${becas50}">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--color-gris-texto);">Total Exonerados:</span>
+                    <strong th:text="${totalExonerados}">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <label class="form-label">Filtrar por Tipo de Prueba</label>
+                    <select id="filterType" class="form-input" onchange="filterBenefits()">
+                        <option value="all">Todos los tipos</option>
+                        <option value="SABER_PRO">Saber Pro</option>
+                        <option value="SABER_TT">Saber T&T</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">Filtrar por Nivel de Beneficio</label>
+                    <select id="filterBenefit" class="form-input" onchange="filterBenefits()">
+                        <option value="all">Todos los beneficios</option>
+                        <option value="excelente">Excelente</option>
+                        <option value="muy-bueno">Muy Bueno</option>
+                        <option value="bueno">Bueno</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="no-aprobado">No Aprobado</option>
+                    </select>
+                </div>
+                <div style="flex: 2;">
+                    <label class="form-label">Buscar Estudiante</label>
+                    <input type="text" id="searchStudent" class="form-input" 
+                           placeholder="Nombre o documento del estudiante..." onkeyup="filterBenefits()">
+                </div>
+                <div>
+                    <button onclick="exportBenefitsReport()" class="btn btn-primary">📊 Exportar Reporte</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits Table -->
+        <div class="table-container">
+            <table class="table" id="benefitsTable">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Documento</th>
+                        <th>Tipo Prueba</th>
+                        <th>Puntaje Global</th>
+                        <th>Nivel</th>
+                        <th>Beneficio Obtenido</th>
+                        <th>Nota Asignada</th>
+                        <th>Beca</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="resultado : ${resultados}" 
+                        th:data-type="${resultado.tipoPrueba}"
+                        th:data-benefit="${resultado.beneficio.aprobado ? (resultado.tipoPrueba == 'SABER_PRO' ? 
+                            (resultado.puntajeGlobal > 241 ? 'excelente' : 
+                             resultado.puntajeGlobal >= 211 ? 'muy-bueno' : 
+                             resultado.puntajeGlobal >= 180 ? 'bueno' : 'aprobado') :
+                            (resultado.puntajeGlobal > 171 ? 'excelente' : 
+                             resultado.puntajeGlobal >= 151 ? 'muy-bueno' : 
+                             resultado.puntajeGlobal >= 120 ? 'bueno' : 'aprobado')) : 'no-aprobado')}"
+                        th:data-student="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido + ' ' + resultado.estudiante.numeroDocumento}">
+                        <td>
+                            <strong th:text="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido}"></strong>
+                        </td>
+                        <td th:text="${resultado.estudiante.tipoDocumento + ' ' + resultado.estudiante.numeroDocumento}"></td>
+                        <td>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" class="badge badge-success">Saber Pro</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" class="badge badge-warning">Saber T&T</span>
+                        </td>
+                        <td>
+                            <strong th:text="${resultado.puntajeGlobal}"></strong>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" style="font-size: 12px; color: var(--color-gris-texto);">/300</span>
+                            <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" style="font-size: 12px; color: var(--color-gris-texto);">/200</span>
+                        </td>
+                        <td>
+                            <span th:switch="${resultado.nivelGlobal}" class="badge">
+                                <span th:case="'Nivel 4'" class="badge-success">Nivel 4</span>
+                                <span th:case="'Nivel 3'" class="badge-warning">Nivel 3</span>
+                                <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">Nivel 2</span>
+                                <span th:case="'Nivel 1'" class="badge-danger">Nivel 1</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div th:if="${resultado.beneficio.aprobado}">
+                                <strong th:text="${resultado.beneficio.descripcion}"></strong>
+                                <div th:if="${resultado.beneficio.mensaje}" style="font-size: 12px; color: var(--color-gris-texto);" 
+                                     th:text="${resultado.beneficio.mensaje}"></div>
+                            </div>
+                            <div th:if="${!resultado.beneficio.aprobado}" style="color: #dc3545;">
+                                <strong>No aprobado</strong>
+                                <div style="font-size: 12px;" th:text="${resultado.beneficio.mensaje}"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${resultado.beneficio.notaAsignada != null}" 
+                                  th:text="${resultado.beneficio.notaAsignada}" 
+                                  style="font-weight: bold; color: #28a745;">
+                            </span>
+                            <span th:if="${resultado.beneficio.notaAsignada == null}" 
+                                  style="color: var(--color-gris-texto);">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${resultado.beneficio.porcentajeBeca > 0}" 
+                                  th:text="${resultado.beneficio.porcentajeBeca} + '%'" 
+                                  style="font-weight: bold; color: #28a745;">
+                            </span>
+                            <span th:if="${resultado.beneficio.porcentajeBeca == 0}" 
+                                  style="color: var(--color-gris-texto);">0%</span>
+                        </td>
+                        <td>
+                            <span th:if="${resultado.beneficio.aprobado}" class="badge badge-success">Aprobado</span>
+                            <span th:if="${!resultado.beneficio.aprobado}" class="badge badge-danger">No Aprobado</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${resultados.empty}">
+                        <td colspan="9" style="text-align: center; color: var(--color-gris-texto); padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+                            <h3 style="color: var(--color-gris-texto); margin-bottom: 10px;">No hay resultados para mostrar</h3>
+                            <p>Registre resultados de estudiantes para ver los beneficios.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Benefits Legend -->
+        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 5px 20px var(--color-sombra);">
+            <h4 style="color: var(--color-verde-texto); margin-bottom: 15px;">📋 Leyenda de Beneficios</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div>
+                    <h5 style="color: var(--color-verde-medio); margin-bottom: 10px;">Saber Pro</h5>
+                    <ul style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                        <li><strong>241+ puntos:</strong> Exoneración TG + Nota 5.0 + 100% beca</li>
+                        <li><strong>211-240 puntos:</strong> Exoneración TG + Nota 4.7 + 50% beca</li>
+                        <li><strong>180-210 puntos:</strong> Exoneración TG + Nota 4.5</li>
+                        <li><strong>120-179 puntos:</strong> Aprobado sin beneficios</li>
+                        <li><strong>0-119 puntos:</strong> No aprobado</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: var(--color-verde-medio); margin-bottom: 10px;">Saber T&T</h5>
+                    <ul style="color: var(--color-gris-texto); font-size: 14px; line-height: 1.6;">
+                        <li><strong>171+ puntos:</strong> Exoneración TG + Nota 5.0 + 100% beca</li>
+                        <li><strong>151-170 puntos:</strong> Exoneración TG + Nota 4.7 + 50% beca</li>
+                        <li><strong>120-150 puntos:</strong> Exoneración TG + Nota 4.5</li>
+                        <li><strong>80-119 puntos:</strong> Aprobado sin beneficios</li>
+                        <li><strong>0-79 puntos:</strong> No aprobado</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript for Benefits Report -->
+    <script>
+        function filterBenefits() {
+            const typeFilter = document.getElementById('filterType').value;
+            const benefitFilter = document.getElementById('filterBenefit').value;
+            const searchFilter = document.getElementById('searchStudent').value.toLowerCase();
+            
+            const rows = document.querySelectorAll('#benefitsTable tbody tr');
+            
+            rows.forEach(row => {
+                const type = row.getAttribute('data-type');
+                const benefit = row.getAttribute('data-benefit');
+                const student = row.getAttribute('data-student').toLowerCase();
+                
+                const typeMatch = typeFilter === 'all' || type === typeFilter;
+                const benefitMatch = benefitFilter === 'all' || benefit === benefitFilter;
+                const searchMatch = student.includes(searchFilter);
+                
+                if (typeMatch && benefitMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        function exportBenefitsReport() {
+            // Simular exportación
+            alert('Generando reporte de beneficios...');
+            
+            // En una implementación real, aquí iría la lógica para:
+            // 1. Generar PDF con todos los beneficios
+            // 2. Incluir estadísticas y gráficos
+            // 3. Descargar el archivo
+            
+            console.log('Exportando reporte de beneficios');
+        }
+        
+        // Initialize filters
+        document.addEventListener('DOMContentLoaded', function() {
+            filterBenefits();
+        });
+    </script>
+</body>
+</html>

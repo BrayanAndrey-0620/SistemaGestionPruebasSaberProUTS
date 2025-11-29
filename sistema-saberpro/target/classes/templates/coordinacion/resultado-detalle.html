@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Resultado - UTS Saber Pro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-icon">UTS</div>
+            <div class="logo-text">UTS Saber Pro</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a th:href="@{/coordinacion/dashboard}" class="nav-link">Dashboard</a>
+            <a th:href="@{/coordinacion/estudiantes}" class="nav-link">Estudiantes</a>
+            <a th:href="@{/coordinacion/resultados}" class="nav-link">Resultados</a>
+            <a th:href="@{/coordinacion/informes/beneficios}" class="nav-link">Informes</a>
+        </nav>
+        
+        <div class="user-info">
+            <span th:text="${session.nombre}"></span>
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Detalle de Resultado</h1>
+            <p class="dashboard-subtitle">Información completa del resultado de prueba</p>
+        </div>
+
+        <div th:if="${resultado != null}" style="max-width: 1000px; margin: 0 auto;">
+            <!-- Student and Test Info -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; margin-bottom: 25px;">
+                    <div>
+                        <h2 style="color: var(--color-verde-texto); margin: 0 0 5px 0;" 
+                            th:text="${resultado.estudiante.primerNombre + ' ' + resultado.estudiante.primerApellido}"></h2>
+                        <p style="color: var(--color-gris-texto); margin: 0;" 
+                           th:text="${resultado.estudiante.tipoDocumento + ' ' + resultado.estudiante.numeroDocumento + ' - ' + resultado.estudiante.numeroRegistro}"></p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span th:if="${resultado.tipoPrueba == 'SABER_PRO'}" class="badge badge-success" style="font-size: 16px; padding: 8px 16px;">Saber Pro</span>
+                        <span th:if="${resultado.tipoPrueba == 'SABER_TT'}" class="badge badge-warning" style="font-size: 16px; padding: 8px 16px;">Saber T&T</span>
+                    </div>
+                </div>
+
+                <!-- Overall Score -->
+                <div style="text-align: center; background: linear-gradient(135deg, var(--color-verde-claro), var(--color-verde-medio)); color: white; padding: 30px; border-radius: 15px; margin-bottom: 25px;">
+                    <div style="font-size: 16px; opacity: 0.9;">PUNTAJE GLOBAL</div>
+                    <div style="font-size: 56px; font-weight: bold; margin: 10px 0;" th:text="${resultado.puntajeGlobal}"></div>
+                    <div style="font-size: 18px; opacity: 0.9;" th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? '/ 300 puntos' : '/ 200 puntos'"></div>
+                    <div style="margin-top: 15px;">
+                        <span th:switch="${resultado.nivelGlobal}" class="badge" style="font-size: 16px; padding: 10px 20px;">
+                            <span th:case="'Nivel 4'" class="badge-success">🎉 Nivel 4 - Excelente</span>
+                            <span th:case="'Nivel 3'" class="badge-warning">👍 Nivel 3 - Bueno</span>
+                            <span th:case="'Nivel 2'" style="background: #e2e3e5; color: #383d41;">📊 Nivel 2 - Básico</span>
+                            <span th:case="'Nivel 1'" class="badge-danger">📝 Nivel 1 - Insuficiente</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Test Details -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 14px; color: var(--color-gris-texto);">Fecha de Prueba</div>
+                        <div style="font-size: 16px; font-weight: bold; color: var(--color-verde-texto);" 
+                             th:text="${#temporals.format(resultado.fechaExamen, 'dd/MM/yyyy')}"></div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 14px; color: var(--color-gris-texto);">Estado</div>
+                        <div th:if="${resultado.beneficio.aprobado}" style="font-size: 16px; font-weight: bold; color: #28a745;">✅ Aprobado</div>
+                        <div th:if="${!resultado.beneficio.aprobado}" style="font-size: 16px; font-weight: bold; color: #dc3545;">❌ No Aprobado</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 15px; background: var(--color-fondo-input); border-radius: 8px;">
+                        <div style="font-size: 14px; color: var(--color-gris-texto);">Mínimo Requerido</div>
+                        <div style="font-size: 16px; font-weight: bold; color: var(--color-verde-texto);" 
+                             th:text="${resultado.tipoPrueba == 'SABER_PRO'} ? '120 puntos' : '80 puntos'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competencies Details -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 25px; text-align: center;">Competencias Evaluadas</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    <!-- Comunicación Escrita -->
+                    <div th:if="${resultado.comunicacionEscrita != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">📝</div>
+                            <div class="competency-title">Comunicación Escrita</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.comunicacionEscrita}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelComunicacionEscrita}"></div>
+                        <div class="competency-description">Capacidad para expresar ideas por escrito de manera clara y organizada</div>
+                    </div>
+
+                    <!-- Razonamiento Cuantitativo -->
+                    <div th:if="${resultado.razonamientoCuantitativo != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">🔢</div>
+                            <div class="competency-title">Razonamiento Cuantitativo</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.razonamientoCuantitativo}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelRazonamientoCuantitativo}"></div>
+                        <div class="competency-description">Habilidad para resolver problemas utilizando conceptos matemáticos</div>
+                    </div>
+
+                    <!-- Lectura Crítica -->
+                    <div th:if="${resultado.lecturaCritica != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">📖</div>
+                            <div class="competency-title">Lectura Crítica</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.lecturaCritica}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelLecturaCritica}"></div>
+                        <div class="competency-description">Capacidad para comprender, interpretar y evaluar textos</div>
+                    </div>
+
+                    <!-- Competencias Ciudadanas -->
+                    <div th:if="${resultado.competenciasCiudadanas != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">🌍</div>
+                            <div class="competency-title">Competencias Ciudadanas</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.competenciasCiudadanas}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelCompetenciasCiudadanas}"></div>
+                        <div class="competency-description">Habilidades para participar constructivamente en la sociedad</div>
+                    </div>
+
+                    <!-- Inglés -->
+                    <div th:if="${resultado.ingles != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">🌐</div>
+                            <div class="competency-title">Inglés</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.ingles}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelInglesMarco != null ? resultado.nivelInglesMarco : resultado.nivelIngles}"></div>
+                        <div class="competency-description">Competencia en comprensión y uso del idioma inglés</div>
+                    </div>
+
+                    <!-- Competencias Específicas para Saber Pro -->
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.formulacionProyectos != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">📋</div>
+                            <div class="competency-title">Formulación de Proyectos</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.formulacionProyectos}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelFormulacionProyectos}"></div>
+                        <div class="competency-description">Habilidad para diseñar y planificar proyectos de ingeniería</div>
+                    </div>
+
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.pensamientoCientifico != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">🔬</div>
+                            <div class="competency-title">Pensamiento Científico</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.pensamientoCientifico}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelPensamientoCientifico}"></div>
+                        <div class="competency-description">Capacidad para aplicar método científico en la resolución de problemas</div>
+                    </div>
+
+                    <div th:if="${resultado.tipoPrueba == 'SABER_PRO' && resultado.disenoSoftware != null}" class="competency-detail-card">
+                        <div class="competency-header">
+                            <div class="competency-icon">💻</div>
+                            <div class="competency-title">Diseño de Software</div>
+                        </div>
+                        <div class="competency-score" th:text="${resultado.disenoSoftware}"></div>
+                        <div class="competency-level" th:text="${resultado.nivelDisenoSoftware}"></div>
+                        <div class="competency-description">Habilidades para diseñar y desarrollar soluciones de software</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits Information -->
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 25px; text-align: center;">Beneficios Obtenidos</h3>
+                
+                <div th:if="${resultado.beneficio.aprobado}" style="background: #d4edda; padding: 25px; border-radius: 10px; border-left: 5px solid #28a745;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="font-size: 32px;">🏆</div>
+                        <div>
+                            <h4 style="color: #155724; margin: 0;">¡Beneficios Otorgados!</h4>
+                            <p style="color: #155724; margin: 5px 0 0 0;" th:text="${resultado.beneficio.descripcion}"></p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div th:if="${resultado.beneficio.notaAsignada != null}" style="text-align: center;">
+                            <div style="font-size: 14px; color: #155724;">Nota Asignada</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #155724;" th:text="${resultado.beneficio.notaAsignada}"></div>
+                            <div style="font-size: 12px; color: #155724;">/ 5.0</div>
+                        </div>
+                        
+                        <div th:if="${resultado.beneficio.porcentajeBeca > 0}" style="text-align: center;">
+                            <div style="font-size: 14px; color: #155724;">Beca de Grado</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #155724;" th:text="${resultado.beneficio.porcentajeBeca} + '%'"></div>
+                            <div style="font-size: 12px; color: #155724;">Descuento en derechos</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${!resultado.beneficio.aprobado}" style="background: #f8d7da; padding: 25px; border-radius: 10px; border-left: 5px solid #dc3545;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 32px;">📝</div>
+                        <div>
+                            <h4 style="color: #721c24; margin: 0;">No Aprobado</h4>
+                            <p style="color: #721c24; margin: 5px 0 0 0;" th:text="${resultado.beneficio.mensaje}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Contact Information -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 20px var(--color-sombra); margin-bottom: 20px;">
+                <h3 style="color: var(--color-verde-texto); margin-bottom: 20px;">📞 Información de Contacto</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div>
+                        <label class="form-label">Correo Electrónico</label>
+                        <div class="info-value" th:text="${resultado.estudiante.correoElectronico}"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Teléfono</label>
+                        <div class="info-value" th:text="${resultado.estudiante.numeroTelefonico}"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Número de Registro</label>
+                        <div class="info-value" th:text="${resultado.estudiante.numeroRegistro}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a th:href="@{/coordinacion/resultados}" class="btn btn-secondary">
+                    ← Volver a Resultados
+                </a>
+                <a th:href="@{/coordinacion/resultados/editar/{id}(id=${resultado.id})}" class="btn btn-primary">
+                    ✏️ Editar Resultado
+                </a>
+                <button onclick="window.print()" class="btn btn-primary">
+                    🖨️ Imprimir Detalle
+                </button>
+                <a th:href="@{/coordinacion/informes/beneficios}" class="btn btn-primary">
+                    📊 Ver en Informes
+                </a>
+            </div>
+        </div>
+
+        <!-- Result Not Found -->
+        <div th:if="${resultado == null}" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 80px; margin-bottom: 20px;">🔍</div>
+            <h2 style="color: white; margin-bottom: 15px;">Resultado no encontrado</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">
+                El resultado solicitado no existe o no está disponible.
+            </p>
+            <a th:href="@{/coordinacion/resultados}" class="btn btn-primary">Volver a Resultados</a>
+        </div>
+    </main>
+
+    <style>
+        .competency-detail-card {
+            border: 1px solid var(--color-gris-claro);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .competency-detail-card:hover {
+            border-color: var(--color-verde-claro);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .competency-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .competency-icon {
+            font-size: 24px;
+        }
+        
+        .competency-title {
+            font-weight: bold;
+            color: var(--color-verde-texto);
+            font-size: 16px;
+        }
+        
+        .competency-score {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--color-verde-texto);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .competency-level {
+            text-align: center;
+            font-size: 14px;
+            color: var(--color-gris-texto);
+            margin-bottom: 10px;
+        }
+        
+        .competency-description {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-gris-texto);
+            line-height: 1.4;
+        }
+        
+        .info-value {
+            background: var(--color-fondo-input);
+            border: 1px solid var(--color-gris-claro);
+            border-radius: 6px;
+            padding: 12px 15px;
+            font-size: 16px;
+            color: var(--color-verde-texto);
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .competency-detail-card {
+                padding: 15px;
+            }
+            
+            .competency-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 5px;
+            }
+        }
+        
+        @media print {
+            .header, .btn {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+            }
+            
+            .competency-detail-card {
+                border: 1px solid #000 !important;
+                background: white !important;
+            }
+        }
+    </style>
+</body>
+</html>
